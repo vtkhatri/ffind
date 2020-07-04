@@ -2,52 +2,59 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 )
 
 func main() {
-	args := os.Args[1:]
 
-	if len(args) < 3 {
+	if len(os.Args[1:]) < 2 {
+		fmt.Println("too few arguments")
 		printUsage()
 	}
-	args = getArgs(args)
 
-	cmd := exec.Command("find", args...)
-	stdout, outErr := cmd.Output()
-	if outErr != nil {
-		panic(outErr)
+	cmd := exec.Command("find", parseArgs()...)
+	cmdOutput, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatalf("find failed with error %s", err)
 	}
-	fmt.Print(string(stdout))
+	fmt.Printf("%s", cmdOutput)
 }
 
 func printUsage() {
-	fmt.Fprintln(os.Stderr, "find -OPTION 'FILENAME' PATH")
-	os.Exit(1)
+	log.Fatal("usage: ffind [-OPTIONS] NAME PATH")
 }
 
-func getArgs(osArgs []string) []string {
-	var opts []string
+func parseArgs() []string {
+	var cmd []string
 
-	opts = append(opts, osArgs[2])
+	cmd = append(cmd, os.Args[len(os.Args[1:])])
 
-	opts = append(opts, "-type")
-	if osArgs[0][0] == '-' {
-		switch osArgs[0][1] {
-		case 'd':
-			opts = append(opts, "d")
-		case 'f':
-			opts = append(opts, "f")
-		default:
-			opts = append(opts, "f")
+	caseInsen := false
+	if os.Args[1][0] == '-' {
+		for _, opts := range os.Args[1][1:] {
+			switch opts {
+			case 'd':
+				cmd = append(cmd, "-type d")
+			case 'f':
+				cmd = append(cmd, "-type f")
+			case 'i':
+				caseInsen = true
+			default:
+				log.Fatal("Only -d, -f & -i supported")
+			}
 		}
-	} else {
-		printUsage()
 	}
 
-	opts = append(opts, "-name")
-	opts = append(opts, osArgs[1])
+	if caseInsen {
+		cmd = append(cmd, "-iname")
+	} else {
+		cmd = append(cmd, "-name")
+	}
+	cmd = append(cmd, "'"+os.Args[len(os.Args[1:])-1]+"'")
 
-	return opts
+	fmt.Println(cmd)
+
+	return cmd
 }
