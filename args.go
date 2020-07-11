@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"regexp"
 )
 
@@ -10,6 +11,7 @@ func getArgs(argsIn []string) (argsOut []string, err string) {
 	argsOut = append(argsOut, argsIn[len(argsIn)-1])
 
 	caseInsen := false
+	regex := false
 
 	if len(argsIn) == 3 {
 		optsString := getOpts.FindStringSubmatch(argsIn[0])
@@ -22,8 +24,10 @@ func getArgs(argsIn []string) (argsOut []string, err string) {
 					argsOut = append(argsOut, "-type", "f")
 				case 'i':
 					caseInsen = true
+				case 'R':
+					regex = true
 				default:
-					return argsOut, "ffind: Only -d, -f & -i supported"
+					return argsOut, fmt.Sprintf("ffind: unsupported option '%c'", opts)
 				}
 			}
 		} else {
@@ -32,11 +36,19 @@ func getArgs(argsIn []string) (argsOut []string, err string) {
 	}
 
 	if caseInsen {
-		argsOut = append(argsOut, "-iname")
+		if regex {
+			argsOut = append(argsOut, "-iregex")
+		} else {
+			argsOut = append(argsOut, "-iname")
+		}
 	} else {
-		argsOut = append(argsOut, "-name")
+		if regex {
+			argsOut = append(argsOut, "-regex")
+		} else {
+			argsOut = append(argsOut, "-name")
+		}
 	}
-	argsOut = append(argsOut, "'"+argsIn[len(argsIn)-2]+"'")
+	argsOut = append(argsOut, argsIn[len(argsIn)-2])
 
 	return argsOut, ""
 }

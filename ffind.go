@@ -20,13 +20,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	cmd := exec.Command("find", args...)
-	cmdOutput, execErr := cmd.CombinedOutput()
+	out, execErr := exec.Command("find", args...).CombinedOutput()
 	if execErr != nil {
-		fmt.Println(fmt.Sprint(err) + ": " + string(cmdOutput))
+		fmt.Println(fmt.Sprint(err) + ": " + string(out))
 		os.Exit(1)
 	}
-	fmt.Printf("%s", cmdOutput)
+	fmt.Printf("%s", out)
 }
 
 func printUsage() {
