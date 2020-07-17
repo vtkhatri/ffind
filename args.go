@@ -24,7 +24,7 @@ func getArgs(argsIn []string) (argsOut []string, err string) {
 					argsOut = append(argsOut, "-type", "f")
 				case 'i':
 					caseInsen = true
-				case 'R':
+				case 'r':
 					regex = true
 				default:
 					return argsOut, fmt.Sprintf("ffind: unsupported option '%c'", opts)
