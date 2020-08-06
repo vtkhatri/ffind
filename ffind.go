@@ -22,7 +22,7 @@ func main() {
 
 	out, execErr := exec.Command("find", args...).CombinedOutput()
 	if execErr != nil {
-		fmt.Println(fmt.Sprint(err) + ": " + string(out))
+		fmt.Println(string(out))
 		os.Exit(1)
 	}
 	fmt.Printf("%s", out)
