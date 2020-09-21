@@ -3,58 +3,86 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"unicode"
 )
 
-var getOpts = regexp.MustCompile(`^(-)(.*?)$`)
+var getOpts = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
 
-func getArgs(argsIn []string) (argsOut []string, err string) {
+func sortArgs(argsIn []string) (longArgs []string, args string, fileName string, path string, err string) {
 
-	argsOut = append(argsOut, argsIn[len(argsIn)-1]) /* Adding path */
+	for _, argsElement := range argsIn {
 
-	preName, err := getPreName(argsIn)
+		opts := getOpts.FindStringSubmatch(argsElement)
+		if len(opts) == 0 {
+			if len(fileName) == 0 {
+				fileName = argsElement
+			} else {
+				path = argsElement
+			}
+		} else {
+			switch opts[1] {
+			case "-":
+				args = opts[2]
+				if len(opts) == 4 {
+					args += opts[3]
+				}
+			case "--":
+				longArgs = append(longArgs, opts[2])
+			default:
+				return argsIn, "", "", "", "invalid option input format"
+			}
+		}
+	}
+	return longArgs, args, fileName, path, ""
+}
+
+func makeCommand(longArgs []string, args string, fileName string, path string) (argsOut []string, err string) {
+
+	argsOut = append(argsOut, path) /* Adding path */
+
+	preName, err := getArgs(args)
 	if err != "" {
 		return argsOut, err
 	}
-	name, err := getName(argsIn[len(argsIn)-2])
-	if err != "" {
-		return argsOut, err
-	}
-
 	argsOut = append(argsOut, preName...) /* Adding arguments going before filename */
-	argsOut = append(argsOut, name)       /* Adding filename */
+
+	name, err := getName(fileName)
+	if err != "" {
+		return argsOut, err
+	}
+	argsOut = append(argsOut, name) /* Adding filename */
 
 	return argsOut, ""
 }
 
-func getPreName(argsIn []string) (argsOut []string, err string) {
+func getArgs(argsIn string) (argsOut []string, err string) {
 
 	caseInsen := false
 	regex := false
 
-	if len(argsIn) > 2 {
-		optsString := getOpts.FindStringSubmatch(argsIn[0])
-		if len(optsString) > 2 {
-			for _, opts := range optsString[2] {
-				switch opts {
-				case 'd':
-					argsOut = append(argsOut, "-type", "d")
-				case 'f':
-					argsOut = append(argsOut, "-type", "f")
-				case 'i':
-					caseInsen = true
-				case 'r':
-					regex = true
-				case 'e':
-					argsOut = append(argsOut, "-maxdepth", argsIn[len(argsIn)-3]) /* Adding maxdepth level (accepted before filename) */
-				default:
-					return argsOut, fmt.Sprintf("ffind: unsupported option '%c'", opts)
-				}
+optionParsing:
+	for _, opts := range argsIn {
+		switch opts {
+		case 'd':
+			argsOut = append(argsOut, "-type", "d")
+		case 'f':
+			argsOut = append(argsOut, "-type", "f")
+		case 'i':
+			caseInsen = true
+		case 'r':
+			regex = true
+		case 'e':
+			depth, err := getDepth(argsIn)
+			if err != "" {
+				return argsOut, err
 			}
-		} else {
-			return argsOut, "ffind: Options must be preceded by '-'"
+			argsOut = append(argsOut, "-maxdepth", depth) /* Adding maxdepth level (accepted before filename) */
+		case '=':
+			break optionParsing
+		default:
+			return argsOut, fmt.Sprintf("unsupported option '%c'", opts)
 		}
 	}
-
 	argsOut = append(argsOut, globType(caseInsen, regex)...)
 
 	return argsOut, ""
@@ -89,4 +117,17 @@ func getName(nameIn string) (nameOut string, err string) {
 	}
 
 	return nameOut, ""
+}
+
+func getDepth(args string) (num string, err string) {
+
+	for i, char := range args {
+		if unicode.IsDigit(char) {
+			num += string(args[i])
+		}
+	}
+	if len(num) == 0 {
+		return args, "depth option present but not specified"
+	}
+	return num, ""
 }
