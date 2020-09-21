@@ -8,18 +8,26 @@ import (
 var getOpts = regexp.MustCompile(`^(-)(.*?)$`)
 
 func getArgs(argsIn []string) (argsOut []string, err string) {
+
 	argsOut = append(argsOut, argsIn[len(argsIn)-1]) /* Adding path */
+
 	preName, err := getPreName(argsIn)
 	if err != "" {
 		return argsOut, err
 	}
-	argsOut = append(argsOut, preName...)            /* Adding arguments going before filename */
-	argsOut = append(argsOut, argsIn[len(argsIn)-2]) /* Adding filename */
+	name, err := getName(argsIn[len(argsIn)-2])
+	if err != "" {
+		return argsOut, err
+	}
+
+	argsOut = append(argsOut, preName...) /* Adding arguments going before filename */
+	argsOut = append(argsOut, name)       /* Adding filename */
 
 	return argsOut, ""
 }
 
 func getPreName(argsIn []string) (argsOut []string, err string) {
+
 	caseInsen := false
 	regex := false
 
@@ -68,4 +76,17 @@ func globType(caseInsen bool, regex bool) (argsOut []string) {
 		}
 	}
 	return argsOut
+}
+
+func getName(nameIn string) (nameOut string, err string) {
+
+	nameOut = nameIn
+	for i := 0; i < len(nameIn); i++ {
+		if (nameOut[i] == ' ') && (i != 0) {
+			nameOut = nameOut[0:i] + "\\" + nameOut[i:]
+			i++
+		}
+	}
+
+	return nameOut, ""
 }
