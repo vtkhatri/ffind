@@ -37,6 +37,7 @@ func sortArgs(argsIn []string) (longArgs []string, args string, fileName string,
 }
 
 func makeCommand(longArgs []string, args string, fileName string, path string) (argsOut []string, err string) {
+	DebugLogger.Println("makeCommand(", longArgs, ",", args, ",", fileName, ",", path, ")")
 
 	argsOut = append(argsOut, path) /* Adding path */
 
@@ -52,6 +53,7 @@ func makeCommand(longArgs []string, args string, fileName string, path string) (
 	}
 	argsOut = append(argsOut, name) /* Adding filename */
 
+	DebugLogger.Println("makeCommand->", argsOut)
 	return argsOut, ""
 }
 

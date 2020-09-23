@@ -2,9 +2,18 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 )
+
+// DebugLogger is the global logging tool
+var DebugLogger *log.Logger
+
+func init() {
+	DebugLogger = log.New(ioutil.Discard, "debug : ", log.Ldate|log.Ltime)
+}
 
 func main() {
 
@@ -48,7 +57,7 @@ func longArgFlags(longArgs []string) string {
 	for _, longArg := range longArgs {
 		switch longArg {
 		case "debug":
-			/* to implement debug logic */
+			DebugLogger.SetOutput(os.Stderr)
 		case "help":
 			printUsage()
 			os.Exit(1)
