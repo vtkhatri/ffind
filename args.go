@@ -10,6 +10,10 @@ var getOpts = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
 
 func sortArgs(argsIn []string) (longArgs []string, args string, fileName string, path string, err string) {
 
+	if len(argsIn) < 2 {
+		return argsIn, "", "", "", "too few arguments \nusage: ffind [-OPTIONS] NAME PATH"
+	}
+
 	for _, argsElement := range argsIn {
 
 		opts := getOpts.FindStringSubmatch(argsElement)

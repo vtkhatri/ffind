@@ -17,12 +17,6 @@ func init() {
 
 func main() {
 
-	if len(os.Args[1:]) < 2 {
-		fmt.Println("too few arguments")
-		printUsage()
-		os.Exit(1)
-	}
-
 	longArgs, args, filename, path, err := sortArgs(os.Args[1:])
 	if err != "" {
 		fmt.Println(err)
@@ -60,7 +54,7 @@ func longArgFlags(longArgs []string) string {
 			DebugLogger.SetOutput(os.Stderr)
 		case "help":
 			printUsage()
-			os.Exit(1)
+			os.Exit(0)
 		default:
 			return fmt.Sprintf("unsupported flag --%s", longArg)
 		}
