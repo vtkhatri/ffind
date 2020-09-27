@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"unicode"
+	"runtime"
 )
 
 var getOpts = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
@@ -11,7 +12,7 @@ var getOpts = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
 func sortArgs(argsIn []string) (longArgs []string, args string, fileName string, path string, err string) {
 
 	if len(argsIn) < 2 {
-		return argsIn, "", "", "", "too few arguments \nusage: ffind [-OPTIONS] NAME PATH"
+		return argsIn, "", "", "", "ffind: too few arguments \nusage: ffind [-OPTIONS] NAME PATH"
 	}
 
 	for _, argsElement := range argsIn {
@@ -33,7 +34,7 @@ func sortArgs(argsIn []string) (longArgs []string, args string, fileName string,
 			case "--":
 				longArgs = append(longArgs, opts[2])
 			default:
-				return argsIn, "", "", "", "invalid option input format"
+				return argsIn, "", "", "", "ffind: invalid option input format"
 			}
 		}
 	}
@@ -76,6 +77,9 @@ optionParsing:
 		case 'i':
 			caseInsen = true
 		case 'r':
+			if runtime.GOOS == "openbsd" {
+				return argsOut, fmt.Sprintf("ffind: -%c: unknown option", opts)
+			}
 			regex = true
 		case 'e':
 			depth, err := getDepth(argsIn)
@@ -86,7 +90,7 @@ optionParsing:
 		case '=':
 			break optionParsing
 		default:
-			return argsOut, fmt.Sprintf("unsupported option '%c'", opts)
+			return argsOut, fmt.Sprintf("ffind: -%c: unknown option", opts)
 		}
 	}
 	argsOut = append(argsOut, globType(caseInsen, regex)...)
@@ -133,7 +137,7 @@ func getDepth(args string) (num string, err string) {
 		}
 	}
 	if len(num) == 0 {
-		return args, "depth option present but not specified"
+		return args, "ffind: depth option present but not specified"
 	}
 	return num, ""
 }
