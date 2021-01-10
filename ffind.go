@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 )
 
 // DebugLogger is the global logging tool
@@ -16,6 +17,11 @@ func init() {
 }
 
 func main() {
+
+	if runtime.GOOS != "openbsd" && runtime.GOOS != "linux" {
+		fmt.Println("ffind is only supported in Linux and OpenBSD", runtime.GOOS)
+		os.Exit(0)
+	}
 
 	longArgs, args, filename, path, err := sortArgs(os.Args[1:])
 	if err != "" {
