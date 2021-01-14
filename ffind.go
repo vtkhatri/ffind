@@ -19,7 +19,7 @@ func init() {
 func main() {
 
 	if runtime.GOOS != "openbsd" && runtime.GOOS != "linux" {
-		fmt.Println("ffind is only supported in Linux and OpenBSD", runtime.GOOS)
+		fmt.Println("ffind is not supported in ", runtime.GOOS)
 		os.Exit(0)
 	}
 
