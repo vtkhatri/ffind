@@ -3,20 +3,25 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"unicode"
 	"runtime"
+	"unicode"
 )
 
 var getOpts = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
 
-func sortArgs(argsIn []string) (longArgs []string, args string, fileName string, path string, err string) {
+func sortArgs(argsIn []string) (longArgs []string, args string, fileName string, path string, execArgs []string, err string) {
 
+	var execArgsStorage []string
 	if len(argsIn) < 2 {
-		return argsIn, "", "", "", "ffind: too few arguments \nusage: ffind [-OPTIONS] NAME PATH"
+		return argsIn, "", "", "", execArgsStorage, "ffind: too few arguments \nusage: ffind [-OPTIONS] NAME PATH"
 	}
 
-	for _, argsElement := range argsIn {
+	for i, argsElement := range argsIn {
 
+		if argsElement == "-exec" {
+			execArgsStorage = argsIn[i:]
+			break
+		}
 		opts := getOpts.FindStringSubmatch(argsElement)
 		if len(opts) == 0 {
 			if len(fileName) == 0 {
@@ -34,15 +39,15 @@ func sortArgs(argsIn []string) (longArgs []string, args string, fileName string,
 			case "--":
 				longArgs = append(longArgs, opts[2])
 			default:
-				return argsIn, "", "", "", "ffind: invalid option input format"
+				return argsIn, "", "", "", execArgsStorage, "ffind: invalid option input format"
 			}
 		}
 	}
-	return longArgs, args, fileName, path, ""
+	return longArgs, args, fileName, path, execArgsStorage, ""
 }
 
-func makeCommand(longArgs []string, args string, fileName string, path string) (argsOut []string, err string) {
-	DebugLogger.Println("makeCommand(", longArgs, ",", args, ",", fileName, ",", path, ")")
+func makeCommand(longArgs []string, args string, fileName string, path string, execArgs []string) (argsOut []string, err string) {
+	DebugLogger.Println("makeCommand(", longArgs, ",", args, ",", fileName, ",", path, ",", execArgs, ")")
 
 	argsOut = append(argsOut, path) /* Adding path */
 
@@ -56,7 +61,8 @@ func makeCommand(longArgs []string, args string, fileName string, path string) (
 	if err != "" {
 		return argsOut, err
 	}
-	argsOut = append(argsOut, name) /* Adding filename */
+	argsOut = append(argsOut, name)        /* Adding filename */
+	argsOut = append(argsOut, execArgs...) /* Adding arguments related to -exec */
 
 	DebugLogger.Println("makeCommand->", argsOut)
 	return argsOut, ""

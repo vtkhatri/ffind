@@ -23,19 +23,20 @@ func main() {
 		os.Exit(0)
 	}
 
-	longArgs, args, filename, path, err := sortArgs(os.Args[1:])
+	longArgs, args, filename, path, execArgs, err := sortArgs(os.Args[1:])
 	if err != "" {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
+	// for --debug and --help flags
 	err = longArgFlags(longArgs)
 	if err != "" {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	commandArgs, err := makeCommand(longArgs, args, filename, path)
+	commandArgs, err := makeCommand(longArgs, args, filename, path, execArgs)
 	if err != "" {
 		fmt.Println(err)
 		os.Exit(1)
