@@ -13,7 +13,7 @@ func sortArgs(argsIn []string) (longArgs []string, args string, fileName string,
 
 	var execArgsStorage []string
 	if len(argsIn) < 2 {
-		return argsIn, "", "", "", execArgsStorage, "ffind: too few arguments \nusage: ffind [-OPTIONS] NAME PATH"
+		return argsIn, "", "", "", execArgsStorage, "ffind: too few arguments"
 	}
 
 	for i, argsElement := range argsIn {

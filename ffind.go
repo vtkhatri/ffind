@@ -26,6 +26,7 @@ func main() {
 	longArgs, args, filename, path, execArgs, err := sortArgs(os.Args[1:])
 	if err != "" {
 		fmt.Println(err)
+		printUsage()
 		os.Exit(1)
 	}
 
@@ -33,25 +34,28 @@ func main() {
 	err = longArgFlags(longArgs)
 	if err != "" {
 		fmt.Println(err)
+		printUsage()
 		os.Exit(1)
 	}
 
 	commandArgs, err := makeCommand(longArgs, args, filename, path, execArgs)
 	if err != "" {
 		fmt.Println(err)
+		printUsage()
 		os.Exit(1)
 	}
 
 	out, execErr := exec.Command("find", commandArgs...).CombinedOutput()
 	if execErr != nil {
 		fmt.Println(string(out))
+		printUsage()
 		os.Exit(1)
 	}
 	fmt.Printf("%s", out)
 }
 
 func printUsage() {
-	fmt.Println("usage: ffind [-OPTIONS] NAME PATH")
+	fmt.Println("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]")
 }
 
 func longArgFlags(longArgs []string) string {
@@ -63,7 +67,7 @@ func longArgFlags(longArgs []string) string {
 			printUsage()
 			os.Exit(0)
 		default:
-			return fmt.Sprintf("unsupported flag --%s", longArg)
+			return fmt.Sprintf("ffind: unsupported flag --%s", longArg)
 		}
 	}
 	return ""
