@@ -84,7 +84,7 @@ optionParsing:
 			caseInsen = true
 		case 'r':
 			if runtime.GOOS == "openbsd" {
-				return argsOut, fmt.Sprintf("ffind: -%c: unknown option", opts)
+				return argsOut, fmt.Sprintf("ffind: -r: regex for find not supported in openbsd", opts)
 			}
 			regex = true
 		case 'e':
