@@ -93,7 +93,7 @@ optionParsing:
 		case '=':
 			break optionParsing
 		default:
-			return argsOut, fmt.Sprintf("ffind: -%c: unknown option", opts)
+			return argsOut, fmt.Sprintf("Unknown option -%c", opts)
 		}
 	}
 	argsOut = append(argsOut, globType(caseInsen, regex)...)
@@ -140,7 +140,7 @@ func getDepth(args string) (num string, err string) {
 		}
 	}
 	if len(num) == 0 {
-		return args, "ffind: depth option present but not specified"
+		return args, "Depth option present but not specified"
 	}
 	return num, ""
 }
