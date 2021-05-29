@@ -12,7 +12,7 @@ var getOpts = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
 func sortArgs(argsIn []string) (longArgs []string, args string, fileName string, path string, execArgs []string, err string) {
 
 	var execArgsStorage []string
-	if len(argsIn) < 2 {
+	if len(argsIn) < 1 {
 		return argsIn, "", "", "", execArgsStorage, "Too few arguments"
 	}
 
