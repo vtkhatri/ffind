@@ -25,30 +25,26 @@ func main() {
 
 	longArgs, args, filename, path, execArgs, err := sortArgs(os.Args[1:])
 	if err != "" {
-		fmt.Println(err)
-		printUsage()
+		fmt.Println("Error sorting arguments:", err)
 		os.Exit(1)
 	}
 
 	// for --debug and --help flags
 	err = longArgFlags(longArgs)
 	if err != "" {
-		fmt.Println(err)
-		printUsage()
+		fmt.Println("Error parsing long arguments:", err)
 		os.Exit(1)
 	}
 
 	commandArgs, err := makeCommand(longArgs, args, filename, path, execArgs)
 	if err != "" {
-		fmt.Println(err)
-		printUsage()
+		fmt.Println("Error making command:", err)
 		os.Exit(1)
 	}
 
 	out, execErr := exec.Command("find", commandArgs...).CombinedOutput()
 	if execErr != nil {
-		fmt.Println(string(out))
-		printUsage()
+		fmt.Println("Error executing command:", string(out))
 		os.Exit(1)
 	}
 	fmt.Printf("%s", out)
@@ -67,7 +63,7 @@ func longArgFlags(longArgs []string) string {
 			printUsage()
 			os.Exit(0)
 		default:
-			return fmt.Sprintf("ffind: unsupported flag --%s", longArg)
+			return fmt.Sprintf("Unsupported flag --%s", longArg)
 		}
 	}
 	return ""

@@ -13,7 +13,8 @@ func sortArgs(argsIn []string) (longArgs []string, args string, fileName string,
 
 	var execArgsStorage []string
 	if len(argsIn) < 2 {
-		return argsIn, "", "", "", execArgsStorage, "ffind: too few arguments"
+		return argsIn, "", "", "", execArgsStorage, "Too few arguments"
+		printUsage()
 	}
 
 	for i, argsElement := range argsIn {
@@ -39,7 +40,7 @@ func sortArgs(argsIn []string) (longArgs []string, args string, fileName string,
 			case "--":
 				longArgs = append(longArgs, opts[2])
 			default:
-				return argsIn, "", "", "", execArgsStorage, "ffind: invalid option input format"
+				return argsIn, "", "", "", execArgsStorage, "Invalid option input format"
 			}
 		}
 	}
