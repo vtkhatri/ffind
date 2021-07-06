@@ -3,10 +3,46 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"os"
 	"unicode"
 )
 
+// SortedArg for code legibility
+type SortedArgs struct {
+	longArgs []string
+	shortArgs string
+	fileName string
+	path string
+	execArgs []string
+}
+
 var getOpts = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
+
+func makeCommand(argsIn []string) (commandArgs []string, retErr string) {
+
+	// sort arguments into argument type
+	sortedArgs, err := sortArgs(argsIn)
+	if err != "" {
+		retErr = fmt.Sprintf("Error sorting arguments: %s", err)
+		return commandArgs, retErr
+	}
+
+	// handling -- flags, these are modifiers on how ffind behaves, need to be handled first
+	err = longArgFlags(sortedArgs.longArgs)
+	if err != "" {
+		retErr = fmt.Sprintf("Error parsing long arguments: %s", err)
+		return commandArgs, retErr
+	}
+
+	// compiling the command arguments following find call
+	commandArgs, err = makeCommandArgs(sortedArgs)
+	if err != "" {
+		retErr = fmt.Sprintf("Error making command arguments: %s", err)
+		return commandArgs, retErr
+	}
+
+	return commandArgs, ""
+}
 
 func sortArgs(argsIn []string) (sortedArgs SortedArgs, err string) {
 
@@ -41,11 +77,12 @@ func sortArgs(argsIn []string) (sortedArgs SortedArgs, err string) {
 			}
 		}
 	}
+
 	return sortedArgs, ""
 }
 
-func makeCommand(args SortedArgs) (argsOut []string, err string) {
-	DebugLogger.Printf("makeCommand(longArgs=%s, shortArgs=%s, fileName=%s, path=%s, execArgs=%s)", args.longArgs, args.shortArgs, args.fileName, args.path, args.execArgs)
+func makeCommandArgs(args SortedArgs) (argsOut []string, err string) {
+	DebugLogger.Printf("makeCommandArgs(longArgs=%s, shortArgs=%s, fileName=%s, path=%s, execArgs=%s)", args.longArgs, args.shortArgs, args.fileName, args.path, args.execArgs)
 
 	argsOut = append(argsOut, args.path)       /* Adding path */
 
@@ -62,7 +99,7 @@ func makeCommand(args SortedArgs) (argsOut []string, err string) {
 	argsOut = append(argsOut, name)    /* Adding filename */
 	argsOut = append(argsOut, args.execArgs...) /* Adding arguments related to -exec */
 
-	DebugLogger.Println("makeCommand->", argsOut)
+	DebugLogger.Println("makeCommandArgs->", argsOut)
 	return argsOut, ""
 }
 
@@ -141,4 +178,23 @@ func getDepth(args string) (num string, err string) {
 		return args, "Depth option present but not specified"
 	}
 	return num, ""
+}
+
+func longArgFlags(longArgs []string) string {
+	for _, longArg := range longArgs {
+		switch longArg {
+		case "debug":
+			DebugLogger.SetOutput(os.Stderr)
+		case "help":
+			printUsage()
+			os.Exit(0)
+		default:
+			return fmt.Sprintf("Unsupported flag --%s", longArg)
+		}
+	}
+	return ""
+}
+
+func printUsage() {
+	fmt.Println("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]")
 }

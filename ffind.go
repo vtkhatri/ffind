@@ -12,15 +12,6 @@ import (
 // DebugLogger is the global logging tool
 var DebugLogger *log.Logger
 
-// SortedArg for code legibility
-type SortedArgs struct {
-	longArgs []string
-	shortArgs string
-	fileName string
-	path string
-	execArgs []string
-}
-
 func init() {
 	DebugLogger = log.New(ioutil.Discard, "debug : ", log.Ldate|log.Ltime)
 }
@@ -32,24 +23,10 @@ func main() {
 		os.Exit(0)
 	}
 
-	// sort arguments into argument type
-	sortedArgs, err := sortArgs(os.Args[1:])
+	// making command
+	commandArgs, err := makeCommand(os.Args[1:]);
 	if err != "" {
-		fmt.Println("Error sorting arguments:", err)
-		os.Exit(1)
-	}
-
-	// handling -- flags, these are modifiers on how ffind behaves, need to be handled first
-	err = longArgFlags(sortedArgs.longArgs)
-	if err != "" {
-		fmt.Println("Error parsing long arguments:", err)
-		os.Exit(1)
-	}
-
-	// compiling the command to be passed to find
-	commandArgs, err := makeCommand(sortedArgs)
-	if err != "" {
-		fmt.Println("Error making command:", err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
@@ -62,23 +39,4 @@ func main() {
 
 	// outputting to terminal
 	fmt.Printf("%s", out)
-}
-
-func printUsage() {
-	fmt.Println("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]")
-}
-
-func longArgFlags(longArgs []string) string {
-	for _, longArg := range longArgs {
-		switch longArg {
-		case "debug":
-			DebugLogger.SetOutput(os.Stderr)
-		case "help":
-			printUsage()
-			os.Exit(0)
-		default:
-			return fmt.Sprintf("Unsupported flag --%s", longArg)
-		}
-	}
-	return ""
 }
