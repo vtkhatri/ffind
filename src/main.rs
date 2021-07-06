@@ -1,14 +1,10 @@
 use std::env;
-use std::io;
 use std::process;
+use std::error;
+use std::fmt;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        println!("Too few arguments");
-        print_usage();
-        process::exit(1);
-    }
 
     // making the command
     let cmd_args_result = make_command(args);
@@ -50,6 +46,93 @@ fn print_usage() {
     println!("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]");
 }
 
-fn make_command(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
-    Ok(args_in)
+#[derive(Debug)]
+enum CommandMakingError {
+    Error1,
+    Error2,
+}
+
+impl fmt::Display for CommandMakingError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CommandMakingError::Error1 => write!(f,"1st command making error"),
+            CommandMakingError::Error2 => write!(f,"2st command making error"),
+        }
+    }
+}
+
+impl error::Error for CommandMakingError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match *self {
+            CommandMakingError::Error1    => None,
+            CommandMakingError::Error2(e) => Some(e),
+        }
+    }
+}
+
+impl From<CommandMakingError> for ArgsSortingError {
+    fn from(err: CommandMakingError) -> ArgsSortingError {
+        ArgsSortingError::Error2(err)
+    }
+}
+
+fn make_command(args_in: Vec<String>) -> Result<Vec<String>, CommandMakingError> {
+    let mut args_out = Vec::new();
+
+    let sorted_args = sort_args(args_in)?;
+    Ok(args_out)
+}
+
+#[derive(Debug)]
+struct SortedArgs {
+    short_args: Vec<String>,
+    long_args: Vec<String>,
+    file_name: String,
+    path: String,
+    exec_args: String,
+}
+
+#[derive(Debug)]
+enum ArgsSortingError {
+    Error1,
+    Error2,
+}
+
+impl fmt::Display for ArgsSortingError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ArgsSortingError::Error1 => write!(f,"1st args sorting"),
+            ArgsSortingError::Error2 => write!(f,"2st args sorting"),
+        }
+    }
+}
+
+impl error::Error for ArgsSortingError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match *self {
+            ArgsSortingError::Error1    => None,
+            ArgsSortingError::Error2(e) => Some(e),
+        }
+    }
+}
+
+fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, ArgsSortingError> {
+    let mut short_args = Vec::new();
+    let mut long_args = Vec::new();
+    let mut file_name = String::from("");
+    let mut path = String::from("");
+    let mut exec_args = String::from("");
+
+    let mut sorted_args = SortedArgs {
+        short_args: short_args,
+        long_args: long_args,
+        file_name: file_name,
+        path: path,
+        exec_args: exec_args,
+    };
+
+    // let long_args = longArgs(args_in)?;
+
+    Err("testing")
+    // Ok(sorted_args)
 }
