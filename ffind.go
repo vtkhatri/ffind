@@ -23,30 +23,35 @@ func main() {
 		os.Exit(0)
 	}
 
+	// sort arguments into argument type
 	longArgs, args, filename, path, execArgs, err := sortArgs(os.Args[1:])
 	if err != "" {
 		fmt.Println("Error sorting arguments:", err)
 		os.Exit(1)
 	}
 
-	// for --debug and --help flags
+	// handling -- flags, these are modifiers on how ffind behaves, need to be handled first
 	err = longArgFlags(longArgs)
 	if err != "" {
 		fmt.Println("Error parsing long arguments:", err)
 		os.Exit(1)
 	}
 
+	// compiling the command to be passed to find
 	commandArgs, err := makeCommand(longArgs, args, filename, path, execArgs)
 	if err != "" {
 		fmt.Println("Error making command:", err)
 		os.Exit(1)
 	}
 
+	// executing the command
 	out, execErr := exec.Command("find", commandArgs...).CombinedOutput()
 	if execErr != nil {
 		fmt.Println("Error executing command:", string(out))
 		os.Exit(1)
 	}
+
+	// outputting to terminal
 	fmt.Printf("%s", out)
 }
 
