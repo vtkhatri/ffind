@@ -8,60 +8,59 @@ import (
 
 var getOpts = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
 
-func sortArgs(argsIn []string) (longArgs []string, args string, fileName string, path string, execArgs []string, err string) {
+func sortArgs(argsIn []string) (sortedArgs SortedArgs, err string) {
 
-	var execArgsStorage []string
 	if len(argsIn) < 1 {
-		return argsIn, "", "", "", execArgsStorage, "Too few arguments"
+		return sortedArgs, "Too few arguments"
 	}
 
 	for i, argsElement := range argsIn {
 
 		if argsElement == "-exec" {
-			execArgsStorage = argsIn[i:]
+			sortedArgs.execArgs = argsIn[i:]
 			break
 		}
 		opts := getOpts.FindStringSubmatch(argsElement)
 		if len(opts) == 0 {
-			if len(fileName) == 0 {
-				fileName = argsElement
+			if len(sortedArgs.fileName) == 0 {
+				sortedArgs.fileName = argsElement
 			} else {
-				path = argsElement
+				sortedArgs.path = argsElement
 			}
 		} else {
 			switch opts[1] {
 			case "-":
-				args = opts[2]
+				sortedArgs.shortArgs = opts[2]
 				if len(opts) == 4 {
-					args += opts[3]
+					sortedArgs.shortArgs += opts[3]
 				}
 			case "--":
-				longArgs = append(longArgs, opts[2])
+				sortedArgs.longArgs = append(sortedArgs.longArgs, opts[2])
 			default:
-				return argsIn, "", "", "", execArgsStorage, "Invalid option input format"
+				return sortedArgs, "Invalid option input format"
 			}
 		}
 	}
-	return longArgs, args, fileName, path, execArgsStorage, ""
+	return sortedArgs, ""
 }
 
-func makeCommand(longArgs []string, args string, fileName string, path string, execArgs []string) (argsOut []string, err string) {
-	DebugLogger.Printf("makeCommand(longArgs=%s, args=%s, fileName=%s, path=%s, execArgs=%s)", longArgs, args, fileName, path, execArgs)
+func makeCommand(args SortedArgs) (argsOut []string, err string) {
+	DebugLogger.Printf("makeCommand(longArgs=%s, shortArgs=%s, fileName=%s, path=%s, execArgs=%s)", args.longArgs, args.shortArgs, args.fileName, args.path, args.execArgs)
 
-	argsOut = append(argsOut, path)       /* Adding path */
+	argsOut = append(argsOut, args.path)       /* Adding path */
 
-	preName, err := getArgs(args)
+	preName, err := getArgs(args.shortArgs)
 	if err != "" {
 		return argsOut, err
 	}
-	argsOut = append(argsOut, preName...) /* Adding arguments going before filename */
+	argsOut = append(argsOut, preName...)      /* Adding arguments going before filename */
 
-	name, err := getName(fileName)
+	name, err := getName(args.fileName)
 	if err != "" {
 		return argsOut, err
 	}
-	argsOut = append(argsOut, name)        /* Adding filename */
-	argsOut = append(argsOut, execArgs...) /* Adding arguments related to -exec */
+	argsOut = append(argsOut, name)    /* Adding filename */
+	argsOut = append(argsOut, args.execArgs...) /* Adding arguments related to -exec */
 
 	DebugLogger.Println("makeCommand->", argsOut)
 	return argsOut, ""

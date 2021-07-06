@@ -12,6 +12,15 @@ import (
 // DebugLogger is the global logging tool
 var DebugLogger *log.Logger
 
+// SortedArg for code legibility
+type SortedArgs struct {
+	longArgs []string
+	shortArgs string
+	fileName string
+	path string
+	execArgs []string
+}
+
 func init() {
 	DebugLogger = log.New(ioutil.Discard, "debug : ", log.Ldate|log.Ltime)
 }
@@ -24,21 +33,21 @@ func main() {
 	}
 
 	// sort arguments into argument type
-	longArgs, args, filename, path, execArgs, err := sortArgs(os.Args[1:])
+	sortedArgs, err := sortArgs(os.Args[1:])
 	if err != "" {
 		fmt.Println("Error sorting arguments:", err)
 		os.Exit(1)
 	}
 
 	// handling -- flags, these are modifiers on how ffind behaves, need to be handled first
-	err = longArgFlags(longArgs)
+	err = longArgFlags(sortedArgs.longArgs)
 	if err != "" {
 		fmt.Println("Error parsing long arguments:", err)
 		os.Exit(1)
 	}
 
 	// compiling the command to be passed to find
-	commandArgs, err := makeCommand(longArgs, args, filename, path, execArgs)
+	commandArgs, err := makeCommand(sortedArgs)
 	if err != "" {
 		fmt.Println("Error making command:", err)
 		os.Exit(1)
