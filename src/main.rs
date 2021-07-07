@@ -31,12 +31,12 @@ fn main() {
             Some(code) => code,
             None       => {
                 println!("Process terminated by signal");
-                130
+                130 // because when I press ctrl-c and echo $? right after, it prints 130
             },
         },
         Err(e) => {
             println!("Error executing command: {}", e);
-            1
+            2
         },
     });
 }
@@ -68,6 +68,9 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
     let mut path = String::from("");
     let mut exec_args = String::from("");
 
+    short_args = get_short_args(args_in)?;
+    long_args = get_long_args(args_in)?;
+
     let mut sorted_args = SortedArgs {
         short_args: short_args,
         long_args: long_args,
@@ -76,8 +79,31 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
         exec_args: exec_args,
     };
 
-    // let long_args = longArgs(args_in)?;
+    // Err(io::Error::new(io::ErrorKind::Other, "testing"))
+    Ok(sorted_args)
+}
 
-    Err(io::Error::new(io::ErrorKind::Other, "testing"))
-    // Ok(sorted_args)
+fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
+    let mut ret_short_args: Vec<String> = Vec::new();
+
+    for args in args_in {
+        let args_c = args.char_indices();
+        if args_c.count() > 1 { // short flags or long flags
+            if args_c.next().unwrap() == (0, '-') {
+                let second_args_char = args_c.next().unwrap();
+                if second_args_char == (1, '-') { // second dash so long flag
+                    continue;
+                } else {
+                    ret_short_args.push(second_args_char.1.to_string());
+                    return Ok(ret_short_args);
+                }
+            }
+        }
+    }
+    return Ok(ret_short_args);
+}
+
+fn get_long_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
+    let mut ret_long_args: Vec<String> = Vec::new();
+    Ok(ret_long_args)
 }
