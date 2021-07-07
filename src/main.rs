@@ -1,6 +1,7 @@
 use std::env;
 use std::process;
 use std::error;
+use std::io;
 use std::fmt;
 
 fn main() {
@@ -32,7 +33,7 @@ fn main() {
             Some(code) => code,
             None       => {
                 println!("Process terminated by signal");
-                2
+                130
             },
         },
         Err(e) => {
@@ -65,14 +66,15 @@ impl error::Error for CommandMakingError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
             CommandMakingError::Error1    => None,
-            CommandMakingError::Error2(e) => Some(e),
+            CommandMakingError::Error2(ref e) => Some(e),
         }
     }
 }
 
+// to enable `?` called for CommandMakingError in a function returning ArgsSortingError
 impl From<CommandMakingError> for ArgsSortingError {
     fn from(err: CommandMakingError) -> ArgsSortingError {
-        ArgsSortingError::Error2(err)
+        ArgsSortingError::ArgsSortingError2(err)
     }
 }
 
@@ -94,15 +96,15 @@ struct SortedArgs {
 
 #[derive(Debug)]
 enum ArgsSortingError {
-    Error1,
-    Error2,
+    ArgsSortingError1,
+    ArgsSortingError2,
 }
 
 impl fmt::Display for ArgsSortingError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ArgsSortingError::Error1 => write!(f,"1st args sorting"),
-            ArgsSortingError::Error2 => write!(f,"2st args sorting"),
+            ArgsSortingError::ArgsSortingError1 => write!(f,"1st args sorting"),
+            ArgsSortingError::ArgsSortingError2 => write!(f,"2st args sorting"),
         }
     }
 }
@@ -110,9 +112,16 @@ impl fmt::Display for ArgsSortingError {
 impl error::Error for ArgsSortingError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
-            ArgsSortingError::Error1    => None,
-            ArgsSortingError::Error2(e) => Some(e),
+            ArgsSortingError::ArgsSortingError1        => None,
+            ArgsSortingError::ArgsSortingError2(ref e) => Some(e),
         }
+    }
+}
+
+// to enable `?` called for ArgsSortingError in a function returning CommandSortingError
+impl From<ArgsSortingError> for CommandMakingError {
+    fn from(err: ArgsSortingError) -> CommandMakingError {
+        CommandMakingError::ArgsSortingError2(err)
     }
 }
 
@@ -133,6 +142,6 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, ArgsSortingError> {
 
     // let long_args = longArgs(args_in)?;
 
-    Err("testing")
+    Err(ArgsSortingError::ArgsSortingError2)
     // Ok(sorted_args)
 }
