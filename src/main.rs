@@ -17,10 +17,10 @@ fn main() {
 /*    
     // executing the command
     let exec_status_result = process::Command::new("find")
-        .args(cmd_args)
-        .stdout(process::Stdio::inherit())
-        .stderr(process::Stdio::inherit())
-        .status();
+                                              .args(cmd_args)
+                                              .stdout(process::Stdio::inherit())
+                                              .stderr(process::Stdio::inherit())
+                                              .status();
 /
     // proper error code propogation
     // spaghettified because Command::status() returns - Ok(Exitstatus(Exitstatus(code)))
@@ -78,7 +78,9 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
                     long_args.push(second.to_string());
                 } else {
                     if second == "exec" {
-                        exec_args = args_in_for_exec.drain(arg_no..).collect::<Vec<String>>().join(" ");
+                        exec_args = args_in_for_exec.drain(arg_no..)
+                                                    .collect::<Vec<String>>()
+                                                    .join(" ");
                         break;
                     } else {
                         short_args.push(second.to_string());
