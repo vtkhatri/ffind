@@ -73,6 +73,7 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
 
     for (arg_no, arg) in args_in.iter().enumerate() {
         match arg.rsplit_once('-') {
+            // separate out --flags, -flags, and -exec among arguments
             Some((first, second)) => {
                 if first == "-" {
                     long_args.push(second.to_string());
@@ -87,8 +88,10 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
                     }
                 }                
             }
+            // only 2 things don't begin with '-' => filename and path, filename always preceding
             None => {
-                if arg_no != 0 {
+                // ffind itself is argument no. 0, so we avoid checking that
+                if arg_no != 0 { 
                     if file_name.is_empty() {
                         file_name = arg.to_string();
                     } else {
