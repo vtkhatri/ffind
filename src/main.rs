@@ -1,7 +1,6 @@
 use std::env;
 use std::process;
 use std::io;
-use regex::Regex;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -15,15 +14,14 @@ fn main() {
         },
         Ok(cmd_args) => cmd_args,
     };
-    
-/*
+/*    
     // executing the command
     let exec_status_result = process::Command::new("find")
         .args(cmd_args)
         .stdout(process::Stdio::inherit())
         .stderr(process::Stdio::inherit())
         .status();
-
+/
     // proper error code propogation
     // spaghettified because Command::status() returns - Ok(Exitstatus(Exitstatus(code)))
     // we need to unwrap highest Ok then unwrap the Exitstatus to get to the return code of
@@ -48,63 +46,71 @@ fn print_usage() {
     println!("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]");
 }
 
-fn make_command(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
-    let mut args_out = Vec::new();
-
-    for (arg_no, arg) in args_in.iter().enumerate() {
-        let re = Regex::new(r"^(?P<flags>--?)([?P<separator>^=]+)(?P<strings>.*?)$").unwrap();
-        println!("===== arg={:?} =====", &arg);
-
-        // let regex_arg: Vec<String> = re.find_iter(&arg).filter_map(|cap| cap.as_str().parse().ok()).collect();
-        // println!("regex_arg={:?}", regex_arg)
-        // Borked : this is giving only cap[0], the full string, it's not collecting the regex matches
-
-        match re.captures(&arg) {
-            Some(caps) => {
-                let mut regexed_args: Vec<String> = caps.iter().;  // How - To
-                println!("args={:?}", regexed_args);
-            }
-            None => (),
-        };
-        
-       // let sorted_args = sort_args(args_in)?;
-    }
-    Ok(args_out)
-}
-
 #[derive(Debug)]
 struct SortedArgs {
     short_args: Vec<String>,
-    long_args: Vec<String>,
+    long_args: String,
     file_name: String,
-    path: String,
+    path: Vec<String>,
     exec_args: String,
 }
 
+fn make_command(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
+    let args_out = Vec::new();
+    let sorted_args = sort_args(args_in)?;
+    println!("{:?}", sorted_args);
+    Ok(args_out)
+}
+
 fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
-    let mut short_args = Vec::new();
-    let mut long_args = Vec::new();
+
+    let mut args_in_for_exec = args_in.to_vec();
+    let mut short_args: Vec<String> = Vec::new();
+    let mut long_args: Vec<String> = Vec::new();
     let mut file_name = String::from("");
-    let mut path = String::from("");
+    let mut path = Vec::new();
     let mut exec_args = String::from("");
 
-    short_args = get_short_args(args_in)?;
-    // long_args = get_long_args(args_in)?;
+    for (arg_no, arg) in args_in.iter().enumerate() {
+        match arg.rsplit_once('-') {
+            Some((first, second)) => {
+                if first == "-" {
+                    long_args.push(second.to_string());
+                } else {
+                    if second == "exec" {
+                        exec_args = args_in_for_exec.drain(arg_no..).collect::<Vec<String>>().join(" ");
+                        break;
+                    } else {
+                        short_args.push(second.to_string());
+                    }
+                }                
+            }
+            None => {
+                if arg_no != 0 {
+                    if file_name.is_empty() {
+                        file_name = arg.to_string();
+                    } else {
+                        path.push(arg.to_string());
+                    }
+                }
+            }
+        }
+    }
 
-    let mut sorted_args = SortedArgs {
-        short_args: short_args,
-        long_args: long_args,
+    let sorted_args = SortedArgs {
+        short_args: get_short_args(short_args)?,
+        long_args: process_long_args(long_args)?,
         file_name: file_name,
         path: path,
         exec_args: exec_args,
     };
 
-    // Err(io::Error::new(io::ErrorKind::Other, "testing"))
     Ok(sorted_args)
 }
 
 fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
     let mut ret_short_args: Vec<String> = Vec::new();
+    println!("test={:?}", args_in);
 
     // for args in args_in {
     //     let args_c = args.char_indices();
@@ -123,7 +129,20 @@ fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
     return Ok(ret_short_args);
 }
 
-fn get_long_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
-    let mut ret_long_args: Vec<String> = Vec::new();
-    Ok(ret_long_args)
+fn process_long_args(arg_in: Vec<String>) -> Result<String, io::Error> {
+    for arg in arg_in {
+        match arg.as_str() {
+            "help" => {
+                print_usage();
+                process::exit(0);
+            },
+            "debug" => {
+                // debug logic to be written
+            },
+            _ => {
+                return Err(io::Error::new(io::ErrorKind::Other, format!("flag --{} not recognized", arg)));
+            },
+        }
+    };
+    Ok(String::from("long arguments are processed"))
 }
