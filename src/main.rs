@@ -51,7 +51,7 @@ struct SortedArgs {
     long_args: String,
     file_name: String,
     path: Vec<String>,
-    exec_args: String,
+    exec_args: Vec<String>,
 }
 
 fn make_command(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
@@ -61,9 +61,8 @@ fn make_command(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
     args_out.append(&mut sorted_args.path.to_vec());
     args_out.append(&mut sorted_args.short_args.to_vec());
     args_out.push(sorted_args.file_name);
-    args_out.push(sorted_args.exec_args);
+    args_out.append(&mut sorted_args.exec_args.to_vec());
 
-    println!("{:?}", args_out);
     Ok(args_out)
 }
 
@@ -74,7 +73,7 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
     let mut long_args: Vec<String> = Vec::new();
     let mut file_name = String::from("");
     let mut path = Vec::new();
-    let mut exec_args = String::from("");
+    let mut exec_args = Vec::new();
 
     for (arg_no, arg) in args_in.iter().enumerate() {
         match arg.rsplit_once('-') {
@@ -85,8 +84,7 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
                 } else {
                     if second == "exec" {
                         exec_args = args_in_for_exec.drain(arg_no..)
-                                                    .collect::<Vec<String>>()
-                                                    .join(" ");
+                                                    .collect::<Vec<String>>();
                         break;
                     } else {
                         short_args.push(second.to_string());
@@ -131,8 +129,14 @@ fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
     for args in args_in {
         for arg in args.chars() {
             match arg {
-                'f' => ret_short_args.push(String::from("-type f")),
-                'd' => ret_short_args.push(String::from("-type d")),
+                'f' => {
+                    ret_short_args.push(String::from("-type"));
+                    ret_short_args.push(String::from("f"));
+                }
+                'd' => {
+                    ret_short_args.push(String::from("-type"));
+                    ret_short_args.push(String::from("d"));
+                }
                 'e' => {
                     // TODO
                 }
