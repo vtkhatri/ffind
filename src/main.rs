@@ -7,7 +7,7 @@ fn main() {
 
     // making the command
     let cmd_args_result = make_command(args);
-    let cmd_args = match cmd_args_result {
+    let _cmd_args = match cmd_args_result {
         Err(e) => {
             println!("Error making command: {}", e);
             process::exit(1);
@@ -115,22 +115,51 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
 
 fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
     let mut ret_short_args: Vec<String> = Vec::new();
-    println!("test={:?}", args_in);
+    enum GlobType {
+        CaseSensitiveName,
+        CaseSensitiveRegex,
+        CaseInsensitiveName,
+        CaseInsensitiveRegex,
+    }
+    let mut glob_type = GlobType::CaseSensitiveName;
 
-    // for args in args_in {
-    //     let args_c = args.char_indices();
-    //     if args_c.count() > 1 { // short flags or long flags
-    //         if args_c.next().unwrap() == (0, '-') {
-    //             let second_args_char = args_c.next().unwrap();
-    //             if second_args_char == (1, '-') { // second dash so long flag
-    //                 continue;
-    //             } else {
-    //                 ret_short_args.push(second_args_char.1.to_string());
-    //                 return Ok(ret_short_args);
-    //             }
-    //         }
-    //     }
-    // }
+    for args in args_in {
+        for arg in args.chars() {
+            match arg {
+                'f' => ret_short_args.push(String::from("-type f")),
+                'd' => ret_short_args.push(String::from("-type d")),
+                'e' => {
+                    // TODO
+                }
+                'r' => {
+                    glob_type = match glob_type {
+                        GlobType::CaseSensitiveName => GlobType::CaseSensitiveRegex,
+                        GlobType::CaseInsensitiveName => GlobType::CaseInsensitiveRegex,
+                        _ => glob_type,
+                    }
+                }
+                'i' => {
+                    glob_type = match glob_type {
+                        GlobType::CaseSensitiveName => GlobType::CaseInsensitiveName,
+                        GlobType::CaseSensitiveRegex => GlobType::CaseInsensitiveRegex,
+                        _ => glob_type,
+                    }
+                }
+                _ => {
+                    return Err(io::Error::new(io::ErrorKind::Other, format!("flag -{} not recognized", arg)));
+                }
+            }
+        }
+    }
+    
+    // If we add filename globtype here, the filename can be added as-is in make_command call
+    match glob_type {
+        GlobType::CaseSensitiveName => ret_short_args.push(String::from("-name")),
+        GlobType::CaseSensitiveRegex => ret_short_args.push(String::from("-regex")),
+        GlobType::CaseInsensitiveName => ret_short_args.push(String::from("-iname")),
+        GlobType::CaseInsensitiveRegex => ret_short_args.push(String::from("-iregex")),
+    }
+
     return Ok(ret_short_args);
 }
 
@@ -142,7 +171,7 @@ fn process_long_args(arg_in: Vec<String>) -> Result<String, io::Error> {
                 process::exit(0);
             },
             "debug" => {
-                // debug logic to be written
+                // TODO : debug logic
             },
             _ => {
                 return Err(io::Error::new(io::ErrorKind::Other, format!("flag --{} not recognized", arg)));
