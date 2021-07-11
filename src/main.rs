@@ -138,7 +138,23 @@ fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
                     ret_short_args.push(String::from("d"));
                 }
                 'e' => {
-                    // TODO
+                    match args.rsplit_once('=') {
+                        Some((_, depth)) => {
+                            match depth.parse::<i32>() {
+                                Ok(_) => {
+                                    ret_short_args.push(String::from("-maxdepth"));
+                                    ret_short_args.push(String::from(depth));
+                                }
+                                Err(e) => {
+                                    return Err(io::Error::new(io::ErrorKind::Other, format!("-e flag needs integer maxdepth: {}", e)));
+                                }
+                            }
+                        }
+                        None => {
+                            return Err(io::Error::new(io::ErrorKind::Other, "-e flag used without maxdepth"));
+                        }
+                    }
+                    break;
                 }
                 'r' => {
                     glob_type = match glob_type {
