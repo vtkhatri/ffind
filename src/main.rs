@@ -7,21 +7,21 @@ fn main() {
 
     // making the command
     let cmd_args_result = make_command(args);
-    let _cmd_args = match cmd_args_result {
+    let cmd_args = match cmd_args_result {
         Err(e) => {
             println!("Error making command: {}", e);
             process::exit(1);
         },
         Ok(cmd_args) => cmd_args,
     };
-/*    
+
     // executing the command
     let exec_status_result = process::Command::new("find")
                                               .args(cmd_args)
                                               .stdout(process::Stdio::inherit())
                                               .stderr(process::Stdio::inherit())
                                               .status();
-/
+
     // proper error code propogation
     // spaghettified because Command::status() returns - Ok(Exitstatus(Exitstatus(code)))
     // we need to unwrap highest Ok then unwrap the Exitstatus to get to the return code of
@@ -39,7 +39,6 @@ fn main() {
             2
         },
     });
-*/
 }
 
 fn print_usage() {
@@ -56,9 +55,15 @@ struct SortedArgs {
 }
 
 fn make_command(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
-    let args_out = Vec::new();
+    let mut args_out = Vec::new();
     let sorted_args = sort_args(args_in)?;
-    println!("{:?}", sorted_args);
+
+    args_out.append(&mut sorted_args.path.to_vec());
+    args_out.append(&mut sorted_args.short_args.to_vec());
+    args_out.push(sorted_args.file_name);
+    args_out.push(sorted_args.exec_args);
+
+    println!("{:?}", args_out);
     Ok(args_out)
 }
 
