@@ -13,7 +13,7 @@ import (
 var DebugLogger *log.Logger
 
 func init() {
-	DebugLogger = log.New(ioutil.Discard, "debug : ", log.Ldate|log.Ltime)
+	DebugLogger = log.New(ioutil.Discard, "[DEBUG] ", 0)
 }
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// making command
-	commandArgs, err := makeCommand(os.Args[1:]);
+	commandArgs, err := makeCommand(os.Args[1:])
 	if err != "" {
 		fmt.Println(err)
 		os.Exit(1)
