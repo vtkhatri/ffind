@@ -1,2 +1,4 @@
+.vscode/
 go/ffind
 rust/target/
+c/ffind
