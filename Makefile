@@ -1,6 +1,11 @@
 .PHONY: all go rust
 
+FFINDFILES := $(shell find . -type f -name 'ffind')
+
 all: go rust c
+
+clean:
+	rm -fr $(FFINDFILES)
 
 go:
 	cd go ; go build
