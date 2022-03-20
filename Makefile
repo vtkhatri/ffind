@@ -1,17 +1,24 @@
-.PHONY: all go rust
+.PHONY: all build clean go rust
 
 FFINDFILES := $(shell find . -type f -name 'ffind')
 
-all: go rust c
+all: build
+build: gobuild rustbuild cbuild
 
 clean:
 	rm -fr $(FFINDFILES)
 
-go:
+gobuild:
 	cd go ; go build
 
-rust:
+go: gobuild
+	cd go ; go install
+
+rustbuild:
 	cd rust ; cargo build
 
-c:
+rust: rustbuild
+	cd rust ; cargo install
+
+cbuild:
 	cd c ; $(CC) ffind.c -o ffind
