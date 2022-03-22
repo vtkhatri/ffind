@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <errno.h>
 
 #define SHORT_ARG      0
@@ -7,24 +9,22 @@
 #define CMD_ARGS       3
 
 void printUsage() {
-	printf("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]");
+	printf("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]\n");
 	return;
 }
 
-char **makeCommand(char** argv) {
-
-	char *cmd[CMD_ARGS];
+int makeCommand(char *command, char** argv) {
 
 	for (int i=0; argv[i] != NULL; i++) {
-		if (argv[0] == '-') {
-			if (argv[1] == '-') {
+		if (argv[i][0] == '-') {
+			if (argv[i][1] == '-') {
 				// it's a longArg
-				if (argv[i] == "--debug") {
-
-					break;
-				} else if (argv[i] == "--help") {
+				if (strcmp(argv[i], "--debug") == 0) {
+					strncat(command, "debug ", 6);
+				} else if (strcmp(argv[i], "--help") == 0) {
+					strncat(command, "help ", 5);
 					printUsage();
-					return NULL;
+					//exit(0);
 				}
 			} else {
 				// it's a shortArg
@@ -32,17 +32,17 @@ char **makeCommand(char** argv) {
 			}
 		} else {
 			if (i != 0) {
-
+				// strncat(command, "1", 1);
 			}
 		}
 	}
-	return cmd;
+	return 0;
 }
 
 int main(int argc, char **argv) {
 
-	if (makeCommand(argv) == NULL) {
-		return 1;
-	}
-	return 0;
+	char *cmd = (char *) malloc (sizeof(char)*20);
+	int retval = makeCommand(cmd, argv);
+	printf("cmd = %s\n", cmd);
+	return retval;
 }
