@@ -21,4 +21,4 @@ rust: rustbuild
 	cd rust ; cargo install
 
 cbuild:
-	cd c ; $(CC) ffind.c -o ffind
+	cd c ; $(CC) -g ffind.c -o ffind
