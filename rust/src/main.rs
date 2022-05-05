@@ -142,8 +142,8 @@ fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
                         Some((_, depth)) => {
                             match depth.parse::<i32>() {
                                 Ok(_) => {
-                                    ret_short_args.push(String::from("-maxdepth"));
-                                    ret_short_args.push(String::from(depth));
+                                    ret_short_args.insert(0, String::from("-maxdepth"));
+                                    ret_short_args.insert(1, String::from(depth));
                                 }
                                 Err(e) => {
                                     return Err(io::Error::new(io::ErrorKind::Other, format!("-e flag needs integer maxdepth: {}", e)));
