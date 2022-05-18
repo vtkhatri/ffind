@@ -2,6 +2,29 @@ use std::env;
 use std::io;
 use std::process;
 
+#[derive(Debug, PartialEq, Eq)]
+enum DebugLevel {
+    DEBUG,
+    NONE,
+}
+
+struct DebugManager {
+    debug_level: DebugLevel,
+}
+
+trait DebugPrints {
+    fn print(&self, to_print: String);
+}
+
+impl DebugPrints for DebugManager {
+    fn print(&self, to_print: String) {
+        if self.debug_level == DebugLevel::DEBUG {
+            eprintln!("{}", to_print);
+        }
+        return;
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -42,7 +65,7 @@ fn main() {
 }
 
 fn print_usage() {
-    println!("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]");
+    println!("Usage: ffind [-fdrih] [-e=maxdepth] [--debug --help] [expression] [path]");
 }
 
 #[derive(Debug)]
@@ -103,13 +126,20 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
         }
     }
 
+    let debug_man = &mut DebugManager {
+        debug_level: DebugLevel::NONE,
+    };
+
     let sorted_args = SortedArgs {
+        long_args: process_long_args(long_args, debug_man)?,
         short_args: get_short_args(short_args)?,
-        long_args: process_long_args(long_args)?,
         file_name: file_name,
         path: path,
         exec_args: exec_args,
     };
+
+    debug_man.print(format!("args_in={:?}", args_in));
+    debug_man.print(format!("sorted_args={:?}", sorted_args));
 
     Ok(sorted_args)
 }
@@ -197,7 +227,10 @@ fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
     return Ok(ret_short_args);
 }
 
-fn process_long_args(arg_in: Vec<String>) -> Result<String, io::Error> {
+fn process_long_args(
+    arg_in: Vec<String>,
+    mut debug_man: &mut DebugManager,
+) -> Result<String, io::Error> {
     for arg in arg_in {
         match arg.as_str() {
             "help" => {
@@ -205,7 +238,7 @@ fn process_long_args(arg_in: Vec<String>) -> Result<String, io::Error> {
                 process::exit(0);
             }
             "debug" => {
-                // TODO : debug logic
+                debug_man.debug_level = DebugLevel::DEBUG;
             }
             _ => {
                 return Err(io::Error::new(
