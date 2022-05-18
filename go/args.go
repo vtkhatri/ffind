@@ -199,5 +199,5 @@ func longArgFlags(longArgs []string) string {
 }
 
 func printUsage() {
-	fmt.Println("Usage: ffind [-fdri] [-e=maxdepth] [--debug --help] [expression] [path]")
+	fmt.Println("Usage: ffind [-fdrih] [-e=maxdepth] [--debug --help] [expression] [path]")
 }
