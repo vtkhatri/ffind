@@ -9,16 +9,16 @@ clean:
 	rm -fr $(FFINDFILES)
 
 gobuild:
-	cd go ; go build
+	cd go && go build
 
 go: gobuild
-	cd go ; go install
+	cd go && go install
 
 rustbuild:
-	cd rust ; cargo build
+	cd rust && cargo build
 
 rust: rustbuild
-	cd rust ; cargo install
+	cd rust && cargo install
 
 cbuild:
-	cd c ; $(CC) -g ffind.c -o ffind
+	cd c && $(CC) -g ffind.c -o ffind
