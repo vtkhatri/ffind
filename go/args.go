@@ -127,6 +127,9 @@ optionParsing:
 			argsOut = append(argsOut, "-maxdepth", depth) /* Adding maxdepth level (accepted before filename) */
 		case '=':
 			break optionParsing
+		case 'h':
+			printUsage()
+			os.Exit(0)
 		default:
 			return argsOut, fmt.Sprintf("Unknown option -%c", opts)
 		}

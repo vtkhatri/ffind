@@ -172,6 +172,10 @@ fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
                         _ => glob_type,
                     }
                 }
+                'h' => {
+                    print_usage();
+                    process::exit(0);
+                }
                 _ => {
                     return Err(io::Error::new(
                         io::ErrorKind::Other,
