@@ -1,6 +1,6 @@
 use std::env;
-use std::process;
 use std::io;
+use std::process;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -11,16 +11,16 @@ fn main() {
         Err(e) => {
             println!("Error making command: {}", e);
             process::exit(1);
-        },
+        }
         Ok(cmd_args) => cmd_args,
     };
 
     // executing the command
     let exec_status_result = process::Command::new("find")
-                                              .args(cmd_args)
-                                              .stdout(process::Stdio::inherit())
-                                              .stderr(process::Stdio::inherit())
-                                              .status();
+        .args(cmd_args)
+        .stdout(process::Stdio::inherit())
+        .stderr(process::Stdio::inherit())
+        .status();
 
     // proper error code propogation
     // spaghettified because Command::status() returns - Ok(Exitstatus(Exitstatus(code)))
@@ -29,15 +29,15 @@ fn main() {
     process::exit(match exec_status_result {
         Ok(exec_out) => match exec_out.code() {
             Some(code) => code,
-            None       => {
+            None => {
                 println!("Process terminated by signal");
                 130 // because when I press ctrl-c and echo $? right after, it prints 130
-            },
+            }
         },
         Err(e) => {
             println!("Error executing command: {}", e);
             2
-        },
+        }
     });
 }
 
@@ -67,7 +67,6 @@ fn make_command(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
 }
 
 fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
-
     let mut args_in_for_exec = args_in.to_vec();
     let mut short_args: Vec<String> = Vec::new();
     let mut long_args: Vec<String> = Vec::new();
@@ -83,18 +82,17 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
                     long_args.push(second.to_string());
                 } else {
                     if second == "exec" {
-                        exec_args = args_in_for_exec.drain(arg_no..)
-                                                    .collect::<Vec<String>>();
+                        exec_args = args_in_for_exec.drain(arg_no..).collect::<Vec<String>>();
                         break;
                     } else {
                         short_args.push(second.to_string());
                     }
-                }                
+                }
             }
             // only 2 things don't begin with '-' => filename and path, filename always preceding
             None => {
                 // ffind itself is argument no. 0, so we avoid checking that
-                if arg_no != 0 { 
+                if arg_no != 0 {
                     if file_name.is_empty() {
                         file_name = arg.to_string();
                     } else {
@@ -139,19 +137,23 @@ fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
                 }
                 'e' => {
                     match args.rsplit_once('=') {
-                        Some((_, depth)) => {
-                            match depth.parse::<i32>() {
-                                Ok(_) => {
-                                    ret_short_args.insert(0, String::from("-maxdepth"));
-                                    ret_short_args.insert(1, String::from(depth));
-                                }
-                                Err(e) => {
-                                    return Err(io::Error::new(io::ErrorKind::Other, format!("-e flag needs integer maxdepth: {}", e)));
-                                }
+                        Some((_, depth)) => match depth.parse::<i32>() {
+                            Ok(_) => {
+                                ret_short_args.insert(0, String::from("-maxdepth"));
+                                ret_short_args.insert(1, String::from(depth));
                             }
-                        }
+                            Err(e) => {
+                                return Err(io::Error::new(
+                                    io::ErrorKind::Other,
+                                    format!("-e flag needs integer maxdepth: {}", e),
+                                ));
+                            }
+                        },
                         None => {
-                            return Err(io::Error::new(io::ErrorKind::Other, "-e flag used without maxdepth"));
+                            return Err(io::Error::new(
+                                io::ErrorKind::Other,
+                                "-e flag used without maxdepth",
+                            ));
                         }
                     }
                     break;
@@ -171,12 +173,15 @@ fn get_short_args(args_in: Vec<String>) -> Result<Vec<String>, io::Error> {
                     }
                 }
                 _ => {
-                    return Err(io::Error::new(io::ErrorKind::Other, format!("flag -{} not recognized", arg)));
+                    return Err(io::Error::new(
+                        io::ErrorKind::Other,
+                        format!("flag -{} not recognized", arg),
+                    ));
                 }
             }
         }
     }
-    
+
     // If we add filename globtype here, the filename can be added as-is in make_command call
     match glob_type {
         GlobType::CaseSensitiveName => ret_short_args.push(String::from("-name")),
@@ -194,14 +199,17 @@ fn process_long_args(arg_in: Vec<String>) -> Result<String, io::Error> {
             "help" => {
                 print_usage();
                 process::exit(0);
-            },
+            }
             "debug" => {
                 // TODO : debug logic
-            },
+            }
             _ => {
-                return Err(io::Error::new(io::ErrorKind::Other, format!("flag --{} not recognized", arg)));
-            },
+                return Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    format!("flag --{} not recognized", arg),
+                ));
+            }
         }
-    };
+    }
     Ok(String::from("long arguments are processed"))
 }
