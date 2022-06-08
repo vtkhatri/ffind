@@ -138,8 +138,8 @@ fn sort_args(args_in: Vec<String>) -> Result<SortedArgs, io::Error> {
         exec_args: exec_args,
     };
 
-    debug_man.print(format!("args_in={:?}", args_in));
-    debug_man.print(format!("sorted_args={:?}", sorted_args));
+    debug_man.print(format!("[DEBUG] args_in={:?}", args_in));
+    debug_man.print(format!("[DEBUG] sorted_args={:?}", sorted_args));
 
     Ok(sorted_args)
 }
